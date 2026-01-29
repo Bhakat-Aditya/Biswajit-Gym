@@ -4,8 +4,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import nodemailer from 'nodemailer';
 
-// Import Routes
-import adminRoutes from './routes/admin.routes.js';
+// FIXED: Changed filename from 'admin.routes.js' to 'admin.route.js'
+import adminRoutes from './routes/admin.route.js';
 import Member from './models/member.model.js';
 import Lead from './models/lead.model.js';
 
@@ -16,20 +16,50 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(cors({
-    origin: "*" // Allow all origins for now (update for production later)
+    origin: "*" // Replace with your frontend URL in production
 }));
 
-// DB Connection
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log("✅ MongoDB Connected"))
-    .catch((err) => console.error("❌ DB Error:", err));
+// --- OPTIMIZED DB CONNECTION FOR VERCEL ---
+let cached = global.mongoose;
 
-// Routes
-app.use('/api/admin', adminRoutes);
+if (!cached) {
+    cached = global.mongoose = { conn: null, promise: null };
+}
 
-// Public Lead Generation Route (For the Landing Page)
+async function connectToDatabase() {
+    if (cached.conn) return cached.conn;
+
+    if (!cached.promise) {
+        const opts = {
+            bufferCommands: false, // Disable mongoose buffering to fail fast if no connection
+        };
+
+        cached.promise = mongoose.connect(process.env.MONGO_URI, opts).then((mongoose) => {
+            return mongoose;
+        });
+    }
+
+    try {
+        cached.conn = await cached.promise;
+    } catch (e) {
+        cached.promise = null;
+        throw e;
+    }
+
+    return cached.conn;
+}
+// -------------------------------------------
+
+// Routes (Wrap in async to ensure DB connects first)
+app.use('/api/admin', async (req, res, next) => {
+    await connectToDatabase();
+    next();
+}, adminRoutes);
+
+// Public Lead Generation
 app.post('/api/register-lead', async (req, res) => {
     try {
+        await connectToDatabase();
         const newLead = new Lead(req.body);
         await newLead.save();
         res.status(201).json({ message: "Details submitted successfully!" });
@@ -38,18 +68,25 @@ app.post('/api/register-lead', async (req, res) => {
     }
 });
 
-// Vercel Cron Job Route (Daily Check)
+// CRON JOB: Renewals (FIXED LOGIC)
 app.get('/api/cron/check-renewal', async (req, res) => {
     try {
-        const fiveDaysFromNow = new Date();
-        fiveDaysFromNow.setDate(fiveDaysFromNow.getDate() + 5);
+        await connectToDatabase();
 
-        // Logic to find members expiring in ~5 days
-        // (We look for expiry dates between Now and Now+5 days)
+        // 1. Calculate the start and end of the "5th day from now"
+        const today = new Date();
+        const targetStart = new Date(today);
+        targetStart.setDate(today.getDate() + 5);
+        targetStart.setHours(0, 0, 0, 0); // 00:00:00 on that day
+
+        const targetEnd = new Date(targetStart);
+        targetEnd.setHours(23, 59, 59, 999); // 23:59:59 on that day
+
+        // 2. Find members expiring EXACTLY within that 24-hour window
         const expiringMembers = await Member.find({
             expiryDate: {
-                $gte: new Date(),
-                $lte: fiveDaysFromNow
+                $gte: targetStart,
+                $lte: targetEnd
             }
         });
 
@@ -60,25 +97,29 @@ app.get('/api/cron/check-renewal', async (req, res) => {
             });
 
             for (const member of expiringMembers) {
-                await transporter.sendMail({
-                    from: process.env.EMAIL,
-                    to: member.email,
-                    subject: 'Gym Membership Renewal Reminder',
-                    text: `Hi ${member.name}, your gym membership is expiring soon. Please renew!`
-                });
+                // Wrap in try/catch so one bad email doesn't stop the whole loop
+                try {
+                    await transporter.sendMail({
+                        from: process.env.EMAIL,
+                        to: member.email,
+                        subject: 'Gym Membership Renewal Reminder',
+                        text: `Hi ${member.name}, just a friendly reminder that your gym membership expires in exactly 5 days. Please renew to keep your streak going!`
+                    });
+                } catch (mailError) {
+                    console.error(`Failed to email ${member.email}:`, mailError);
+                }
             }
         }
 
-        res.json({ success: true, emailed: ({ RP: expiringMembers.length }) });
+        res.json({ success: true, emailedCount: expiringMembers.length });
     } catch (error) {
-        console.error(error);
+        console.error("Cron Job Error:", error);
         res.status(500).json({ error: "Cron job failed" });
     }
 });
 
-// Base Route
 app.get('/', (req, res) => {
-    res.send('Gym Server is Running (ESM Mode)');
+    res.send('Gym Server is Running');
 });
 
 const PORT = process.env.PORT || 5000;
