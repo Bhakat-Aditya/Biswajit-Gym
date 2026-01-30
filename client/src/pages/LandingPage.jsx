@@ -14,7 +14,7 @@ const LandingPage = () => {
   // BRANDING
   const GYM_NAME = "SPORTS COMPLEX";
   const GYM_SUB = "MULTI GYM";
-  const MAP_LINK = "https://maps.app.goo.gl/ddvZQeVLhZwnAwQq8"; // Your Link
+  const MAP_LINK = "https://maps.app.goo.gl/ddvZQeVLhZwnAwQq8";
 
   const [formData, setFormData] = useState({
     name: "",
@@ -25,6 +25,75 @@ const LandingPage = () => {
     height: "",
   });
   const [recentPhotos, setRecentPhotos] = useState([]);
+
+  // FAQ STATE
+  const [openFaq, setOpenFaq] = useState(null);
+
+  const toggleFaq = (index) => {
+    setOpenFaq(openFaq === index ? null : index);
+  };
+
+  const faqs = [
+    {
+      question: "What are your operating hours?",
+      answer: "We are open from 5:30 AM to 10:00 PM, Everyday.",
+    },
+    {
+      question: "Is this gym suitable for beginners?",
+      answer:
+        "Absolutely. We have a 'Zero-Intimidation' policy. Our floor trainers are specifically trained to guide beginners through their first few months.",
+    },
+    {
+      question: "Do you have Personal Trainers available?",
+      answer:
+        "Yes, we have certified personal trainers for those who want dedicated 1-on-1 coaching, customized diet plans, and faster results.",
+    },
+    {
+      question: "Are there separate changing rooms for men and women?",
+      answer:
+        "Yes, we maintain high standards of privacy and hygiene with separate changing rooms, lockers, and washrooms.",
+    },
+    {
+      question: "Do you provide diet counseling?",
+      answer:
+        "Nutrition is 70% of the game. We provide basic diet guidance with every membership, and advanced nutrition planning for personal training clients.",
+    },
+    {
+      question: "What kind of equipment do you use?",
+      answer:
+        "We use premium biomechanical equipment designed to hit your muscles at the right angles, minimizing injury risk while maximizing growth.",
+    },
+    {
+      question: "Is parking available?",
+      answer:
+        "Yes, we have ample parking space for bikes right outside the gym.",
+    },
+    {
+      question: "Can I freeze my membership if I travel?",
+      answer:
+        "No we're not allowing it at the moment. However, we may consider it on a case-by-case basis for long-term memberships.",
+    },
+    {
+      question: "Do you sell supplements at the gym?",
+      answer:
+        "We have an authentic supplement desk. We only stock 100% genuine products. However, buying is optional; we never force supplements.",
+    },
+    {
+      question: "Can I bring a guest for a workout?",
+      answer:
+        "Yes, we offer a One-Day Guest Pass. You can bring a friend to experience the vibe before they decide to join.",
+    },
+    {
+      question: "Is there a Steam Bath facility?",
+      answer:
+        "We focus purely on iron and training. Currently, we do not have a steam bath, as we prioritize maintaining affordable rates for top-tier equipment.",
+    },
+    {
+      question: "How do I pay? Is EMI available?",
+      answer:
+        "We accept Cash, UPI, and Bank Transfers. For yearly memberships, we can discuss installment options on a case-by-case basis.",
+    },
+  ];
 
   // --- ANIMATIONS & DATA FETCH ---
   useEffect(() => {
@@ -42,29 +111,30 @@ const LandingPage = () => {
     fetchPhotos();
 
     const ctx = gsap.context(() => {
-      // Hero & Scroll Animations
-      const heroTl = gsap.timeline();
-      heroTl
-        .from(".hero-text-char", {
-          y: 100,
-          opacity: 0,
-          duration: 1,
-          stagger: 0.05,
-          ease: "power4.out",
-          delay: 0.2,
-        })
-        .from(".hero-sub", { opacity: 0, y: 20, duration: 0.8 }, "-=0.5")
-        .from(
-          ".hero-btn",
-          { scale: 0, duration: 0.5, ease: "back.out(1.7)" },
-          "-=0.3",
-        );
+      // --- MARQUEE ANIMATIONS (Opposite Directions) ---
 
-      gsap.to(".marquee-track", {
+      // Bottom Track (Moves Left)
+      gsap.to(".marquee-track-left", {
         xPercent: -50,
         ease: "none",
-        duration: 10,
+        duration: 15,
         repeat: -1,
+      });
+
+      // Top Track (Moves Right)
+      gsap.fromTo(
+        ".marquee-track-right",
+        { xPercent: -50 },
+        { xPercent: 0, ease: "none", duration: 15, repeat: -1 },
+      );
+
+      // Hero Text Fade In
+      gsap.from(".hero-content", {
+        y: 50,
+        opacity: 0,
+        duration: 1.5,
+        ease: "power4.out",
+        delay: 0.5,
       });
 
       gsap.from(".feature-card", {
@@ -82,6 +152,9 @@ const LandingPage = () => {
         duration: 0.6,
         stagger: 0.1,
       });
+
+      // REMOVED: .faq-item animation to prevent loading issues.
+      // The items will now appear naturally without potentially getting stuck at opacity:0
     }, mainRef);
 
     return () => ctx.revert();
@@ -119,7 +192,7 @@ const LandingPage = () => {
       className="bg-black text-white min-h-screen overflow-x-hidden font-sans selection:bg-red-600 selection:text-white"
     >
       {/* --- NAVBAR --- */}
-      <nav className="fixed w-full z-50 px-6 py-4 flex justify-between items-center bg-gradient-to-b from-black/90 to-transparent backdrop-blur-sm transition-all duration-300">
+      <nav className="fixed w-full z-50 px-6 py-4 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent backdrop-blur-[2px] transition-all duration-300">
         <div
           className="flex flex-col leading-none group cursor-pointer"
           onClick={() => window.scrollTo(0, 0)}
@@ -148,58 +221,71 @@ const LandingPage = () => {
       </nav>
 
       {/* --- HERO SECTION --- */}
-      <header className="relative h-screen flex flex-col justify-center items-center text-center px-4 overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-zinc-800/30 via-black to-black z-0"></div>
-        <div className="z-10 relative mt-16">
-          <h1 className="text-6xl md:text-[9rem] font-black uppercase leading-[0.9] tracking-tighter mb-6 mix-blend-difference">
-            <div className="overflow-hidden">
-              <span className="hero-text-char inline-block text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-500">
-                PAIN IS
-              </span>
-            </div>
-            <div className="overflow-hidden">
-              <span className="hero-text-char inline-block text-red-600">
-                TEMPORARY
-              </span>
-            </div>
-            <div className="overflow-hidden">
-              <span className="hero-text-char inline-block text-white">
-                GLORY IS
-              </span>
-            </div>
-            <div className="overflow-hidden">
-              <span className="hero-text-char inline-block text-white">
-                FOREVER
-              </span>
-            </div>
-          </h1>
-          <p className="hero-sub text-gray-400 text-lg md:text-2xl mb-10 max-w-2xl mx-auto font-light">
-            Midnapore's Premier Fitness Hub.{" "}
-            <span className="text-white font-bold">
-              Sculpt your body. Forge your mind.
+      <header className="relative h-screen w-full overflow-hidden">
+        {/* BACKGROUND IMAGE - Fixed & Covered */}
+        <div
+          className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: `url('https://scontent.fccu35-1.fna.fbcdn.net/v/t39.30808-6/622852226_122164865900615778_3938908579682721278_n.jpg?stp=cp6_dst-jpg_tt6&_nc_cat=111&ccb=1-7&_nc_sid=cc71e4&_nc_ohc=CGHadcgDQrEQ7kNvwGQ102O&_nc_oc=AdkhG9QbCdvIWptvsHHdwnLhdj2sYABSZLTMiNOEzlPM339hbDNbE_0KcBqRXmTASvg&_nc_zt=23&_nc_ht=scontent.fccu35-1.fna&_nc_gid=B4tHLywkyIxEyECYGezlgg&oh=00_Afp6tUYpMw-0pGEz56fRRz2GvyxMC_FpkFMoYFqm7iAfMg&oe=698248E0')`,
+            filter: "brightness(0.9)", // Slight darken for text pop
+          }}
+        ></div>
+
+        {/* GRADIENT OVERLAY (Bottom only) */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/20 z-10"></div>
+
+        {/* --- MAIN HERO CONTENT (Bottom Aligned) --- */}
+        <div className="relative z-20 h-full flex flex-col justify-end items-center pb-32 px-4 text-center hero-content">
+          <h1 className="text-5xl md:text-[8rem] leading-[0.9] font-black uppercase italic tracking-tighter text-white drop-shadow-2xl mb-4">
+            <span className="text-red-600 block md:inline">SPORTS</span> COMPLEX
+            <span className="block text-white text-4xl md:text-[6rem]">
+              MULTI GYM
             </span>
+          </h1>
+
+          <div className="w-32 h-2 bg-red-600 mb-6"></div>
+
+          <p className="text-xl md:text-3xl font-bold uppercase tracking-[0.3em] text-gray-200 text-shadow-md">
+            For Men & Women
           </p>
+
           <button
             onClick={scrollToForm}
-            className="hero-btn group relative px-8 py-4 bg-red-600 text-white font-black text-xl uppercase tracking-widest overflow-hidden skew-x-[-10deg] hover:bg-white hover:text-red-600 transition-colors duration-300"
+            className="mt-8 px-10 py-4 bg-red-600 text-white font-black uppercase tracking-widest hover:bg-white hover:text-red-600 transition-colors duration-300 skew-x-[-10deg] shadow-[0_0_20px_rgba(220,38,38,0.5)]"
           >
-            <span className="inline-block skew-x-[10deg]">Join The Tribe</span>
+            <span className="inline-block skew-x-[10deg]">Start Training</span>
           </button>
         </div>
       </header>
 
-      {/* --- INFINITE MARQUEE --- */}
-      <div className="bg-red-600 py-4 overflow-hidden -rotate-1 border-y-4 border-black z-20 relative">
-        <div className="marquee-track flex whitespace-nowrap">
-          {[1, 2, 3, 4].map((i) => (
-            <span
-              key={i}
-              className="text-4xl md:text-6xl font-black text-black px-8 uppercase italic"
-            >
-              NO SHORTCUTS • JUST RESULTS • IRON THERAPY • GRIND DONT STOP
-              •{" "}
-            </span>
-          ))}
+      {/* --- DUAL MARQUEE SECTION --- */}
+      <div className="relative z-30 transform -rotate-2 origin-left scale-110 border-y-8 border-black shadow-2xl mt-[-50px] mb-10">
+        {/* TOP STRIP - MOVES RIGHT */}
+        <div className="bg-black py-3 border-b-4 border-zinc-800 overflow-hidden">
+          <div className="marquee-track-right flex whitespace-nowrap">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <span
+                key={i}
+                className="text-2xl md:text-4xl font-black text-white px-8 uppercase italic"
+              >
+                UNLEASH THE BEAST • YOUR TIME IS NOW • SWEAT IS GLORY •
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* BOTTOM STRIP - MOVES LEFT */}
+        <div className="bg-red-600 py-3 overflow-hidden">
+          <div className="marquee-track-left flex whitespace-nowrap">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <span
+                key={i}
+                className="text-2xl md:text-4xl font-black text-black px-8 uppercase italic"
+              >
+                NO SHORTCUTS • JUST RESULTS • IRON THERAPY • GRIND DONT STOP •
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -335,40 +421,6 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* --- GALLERY PREVIEW --- */}
-      <section className="py-24 px-6 bg-zinc-950 border-t border-white/5">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-end mb-12">
-            <h2 className="text-3xl md:text-5xl font-black uppercase text-white">
-              Latest <span className="text-red-600">Shots</span>
-            </h2>
-            <button
-              onClick={() => navigate("/gallery")}
-              className="text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors"
-            >
-              VIEW ALL PHOTOS →
-            </button>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-4">
-            {recentPhotos.map((photo, i) => (
-              <div
-                key={photo._id}
-                className={`relative overflow-hidden rounded-lg group ${i === 0 ? "col-span-2 row-span-2" : "col-span-1 h-40 md:h-auto"}`}
-              >
-                <img
-                  src={photo.photoUrl}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0"
-                  alt="Gym"
-                />
-              </div>
-            ))}
-          </div>
-          {recentPhotos.length === 0 && (
-            <p className="text-gray-600 text-sm">No photos yet.</p>
-          )}
-        </div>
-      </section>
-
       {/* --- LEAD GENERATION FORM --- */}
       <section
         ref={formRef}
@@ -448,6 +500,79 @@ const LandingPage = () => {
               Submit Request
             </button>
           </form>
+        </div>
+      </section>
+      {/* --- GALLERY PREVIEW --- */}
+      <section className="py-24 px-6 bg-zinc-950 border-t border-white/5">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex justify-between items-end mb-12">
+            <h2 className="text-3xl md:text-5xl font-black uppercase text-white">
+              Latest <span className="text-red-600">Shots</span>
+            </h2>
+            <button
+              onClick={() => navigate("/gallery")}
+              className="text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors"
+            >
+              VIEW ALL PHOTOS →
+            </button>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-4">
+            {recentPhotos.map((photo, i) => (
+              <div
+                key={photo._id}
+                className={`relative overflow-hidden rounded-lg group ${i === 0 ? "col-span-2 row-span-2" : "col-span-1 h-40 md:h-auto"}`}
+              >
+                <img
+                  src={photo.photoUrl}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0"
+                  alt="Gym"
+                />
+              </div>
+            ))}
+          </div>
+          {recentPhotos.length === 0 && (
+            <p className="text-gray-600 text-sm">No photos yet.</p>
+          )}
+        </div>
+      </section>
+
+      {/* --- FAQ SECTION (Accordion) --- */}
+      <section className="faq-section py-24 px-6 bg-zinc-950 border-t border-zinc-900">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl md:text-5xl font-black uppercase text-center mb-12 text-white">
+            Common <span className="text-red-600">Questions</span>
+          </h2>
+          <div className="space-y-4">
+            {faqs.map((faq, i) => (
+              <div
+                key={i}
+                className={`faq-item border border-zinc-800 bg-zinc-900/50 rounded-lg overflow-hidden transition-all duration-300 ${openFaq === i ? "border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.2)]" : "hover:border-zinc-600"}`}
+              >
+                <button
+                  onClick={() => toggleFaq(i)}
+                  className="w-full text-left px-6 py-5 flex justify-between items-center bg-zinc-900 focus:outline-none"
+                >
+                  <span
+                    className={`font-bold uppercase tracking-wide text-sm md:text-base ${openFaq === i ? "text-white" : "text-gray-400"}`}
+                  >
+                    {faq.question}
+                  </span>
+                  <span
+                    className={`text-xl font-bold transition-transform duration-300 ${openFaq === i ? "text-red-600 rotate-180" : "text-zinc-600"}`}
+                  >
+                    ▼
+                  </span>
+                </button>
+                <div
+                  className={`transition-all duration-300 ease-in-out overflow-hidden ${openFaq === i ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}
+                >
+                  <div className="px-6 pb-6 pt-2 text-gray-400 text-sm leading-relaxed border-t border-zinc-800/50">
+                    {faq.answer}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -534,7 +659,7 @@ const LandingPage = () => {
               <li className="flex items-start gap-3">
                 <span className="text-red-600 mt-1">📍</span>
                 <span>
-                  Near Sitala Mandir,
+                  Inside Mindapore Sport Complex
                   <br />
                   Midnapore, West Bengal
                 </span>
@@ -542,19 +667,19 @@ const LandingPage = () => {
               <li className="flex items-center gap-3">
                 <span className="text-red-600">📞</span>
                 <a
-                  href="tel:+919876543210"
+                  href="tel:+917679586723"
                   className="hover:text-white transition-colors"
                 >
-                  +91 98765 43210
+                  +91 76795 86723
                 </a>
               </li>
               <li className="flex items-center gap-3">
                 <span className="text-red-600">✉️</span>
                 <a
-                  href="mailto:info@sportscomplex.com"
+                  href="mailto:biswajitdas.93.mid@gmail.com"
                   className="hover:text-white transition-colors"
                 >
-                  info@sportscomplex.com
+                  biswajitdas.93.mid@gmail.com
                 </a>
               </li>
             </ul>
@@ -598,7 +723,7 @@ const LandingPage = () => {
         {/* Copyright Bar */}
         <div className="mt-16 border-t border-zinc-900 pt-8 text-center">
           <p className="text-zinc-600 text-xs uppercase tracking-widest">
-            &copy; {new Date().getFullYear()} {GYM_NAME} {GYM_SUB}. All rights
+            © {new Date().getFullYear()} {GYM_NAME} {GYM_SUB}. All rights
             reserved. <br />
             <span className="text-[10px] normal-case opacity-50">
               Designed for Performance.
