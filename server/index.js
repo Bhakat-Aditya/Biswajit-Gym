@@ -7,7 +7,8 @@ import { v2 as cloudinary } from 'cloudinary';
 // Routes
 import leadRoutes from './routes/route.lead.js';
 import memberRoutes from './routes/route.member.js';
-import cronRoutes from './routes/route.cron.js'; // Import Cron Route
+import cronRoutes from './routes/route.cron.js'; 
+import galleryRoutes from './routes/route.gallery.js';
 
 dotenv.config();
 
@@ -34,7 +35,8 @@ const connectDB = async () => {
 // --- Routes ---
 app.use('/api/leads', leadRoutes);
 app.use('/api/members', memberRoutes);
-app.use('/api/cron', cronRoutes); // Connect Cron Route
+app.use('/api/cron', cronRoutes); 
+app.use('/api/gallery', galleryRoutes);
 
 app.get('/', (req, res) => res.send('Gym Server Running...'));
 

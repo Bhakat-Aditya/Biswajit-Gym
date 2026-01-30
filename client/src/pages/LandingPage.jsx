@@ -23,7 +23,22 @@ const LandingPage = () => {
     weight: "",
     height: "",
   });
+  const [recentPhotos, setRecentPhotos] = useState([]);
 
+  // Fetch recent photos
+  useEffect(() => {
+    const fetchPhotos = async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/gallery?limit=6`,
+        );
+        setRecentPhotos(res.data.data);
+      } catch (e) {
+        console.log(e);
+      }
+    };
+    fetchPhotos();
+  }, []);
   // --- ANIMATIONS ---
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -431,6 +446,40 @@ const LandingPage = () => {
               Submit Request
             </button>
           </form>
+        </div>
+      </section>
+      {/* --- GALLERY PREVIEW --- */}
+      <section className="py-24 px-6 bg-zinc-950 border-t border-white/5">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex justify-between items-end mb-12">
+            <h2 className="text-3xl md:text-5xl font-black uppercase text-white">
+              Latest <span className="text-red-600">Shots</span>
+            </h2>
+            <button
+              onClick={() => navigate("/gallery")}
+              className="text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2 transition-colors"
+            >
+              VIEW ALL PHOTOS →
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-4">
+            {recentPhotos.map((photo, i) => (
+              <div
+                key={photo._id}
+                className={`relative overflow-hidden rounded-lg group ${i === 0 ? "col-span-2 row-span-2" : "col-span-1 h-40 md:h-auto"}`}
+              >
+                <img
+                  src={photo.photoUrl}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0"
+                  alt="Gym"
+                />
+              </div>
+            ))}
+          </div>
+          {recentPhotos.length === 0 && (
+            <p className="text-gray-600 text-sm">No photos yet.</p>
+          )}
         </div>
       </section>
 

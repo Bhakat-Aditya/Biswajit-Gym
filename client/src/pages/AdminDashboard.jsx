@@ -25,6 +25,41 @@ const AdminDashboard = () => {
     joiningDate: "",
     photo: null,
   });
+  const [showGalleryModal, setShowGalleryModal] = useState(false);
+  const [galleryPhotos, setGalleryPhotos] = useState([]);
+
+  // Fetch gallery photos when modal opens
+  const openGallery = async () => {
+    setShowGalleryModal(true);
+    const res = await axios.get(`${API_URL}/api/gallery`);
+    setGalleryPhotos(res.data.data);
+  };
+
+  const handleUploadPhoto = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("photo", file);
+
+    try {
+      alert("Uploading... Please wait.");
+      await axios.post(`${API_URL}/api/gallery`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      alert("Uploaded!");
+      const res = await axios.get(`${API_URL}/api/gallery`);
+      setGalleryPhotos(res.data.data);
+    } catch (err) {
+      alert("Upload failed.");
+    }
+  };
+
+  const handleDeletePhoto = async (id) => {
+    if (!confirm("Are you sure?")) return;
+    await axios.delete(`${API_URL}/api/gallery/${id}`);
+    setGalleryPhotos(galleryPhotos.filter((p) => p._id !== id));
+  };
 
   useEffect(() => {
     if (!sessionStorage.getItem("isAdmin")) navigate("/admin-login");
@@ -203,15 +238,25 @@ const AdminDashboard = () => {
 
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-white">ADMIN DASHBOARD</h1>
-        <button
-          onClick={() => {
-            sessionStorage.removeItem("isAdmin");
-            navigate("/");
-          }}
-          className="text-sm text-red-500 hover:text-red-400"
-        >
-          Logout
-        </button>
+
+        <div className="flex gap-4">
+          <button
+            onClick={openGallery}
+            className="bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded font-bold text-sm border border-zinc-600"
+          >
+            📸 MANAGE GALLERY
+          </button>
+
+          <button
+            onClick={() => {
+              sessionStorage.removeItem("isAdmin");
+              navigate("/");
+            }}
+            className="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded text-sm"
+          >
+            Logout
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -443,6 +488,62 @@ const AdminDashboard = () => {
           ))}
         </div>
       </div>
+      {showGalleryModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
+          <div className="bg-zinc-900 border border-zinc-700 w-full max-w-4xl h-[80vh] rounded-2xl flex flex-col relative overflow-hidden">
+            <div className="p-4 border-b border-zinc-700 flex justify-between items-center bg-black">
+              <h2 className="text-xl font-bold text-white">Gallery Manager</h2>
+              <button
+                onClick={() => setShowGalleryModal(false)}
+                className="text-gray-500 hover:text-white text-2xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-4 bg-zinc-800 border-b border-zinc-700">
+              <label className="flex items-center gap-4 cursor-pointer">
+                <span className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-bold text-sm">
+                  + UPLOAD NEW PHOTO
+                </span>
+                <input
+                  type="file"
+                  onChange={handleUploadPhoto}
+                  className="hidden"
+                  accept="image/*"
+                />
+                <span className="text-xs text-gray-400">
+                  Select an image to upload instantly.
+                </span>
+              </label>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {galleryPhotos.map((photo) => (
+                  <div
+                    key={photo._id}
+                    className="relative group border border-zinc-700 rounded overflow-hidden"
+                  >
+                    <img
+                      src={photo.photoUrl}
+                      className="w-full h-32 object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                      <button
+                        onClick={() => handleDeletePhoto(photo._id)}
+                        className="bg-red-600 text-white px-3 py-1 text-xs rounded font-bold"
+                      >
+                        DELETE
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
