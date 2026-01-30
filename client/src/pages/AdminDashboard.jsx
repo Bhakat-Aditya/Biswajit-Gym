@@ -28,7 +28,19 @@ const AdminDashboard = () => {
   const [showGalleryModal, setShowGalleryModal] = useState(false);
   const [galleryPhotos, setGalleryPhotos] = useState([]);
 
-  // Fetch gallery photos when modal opens
+  // --- NEW: Handle Manual Reminder ---
+  const handleSendReminder = async (id) => {
+    if (!confirm("Send payment reminder email to this member?")) return;
+    try {
+      alert("Sending email...");
+      await axios.post(`${API_URL}/api/members/${id}/remind`);
+      alert("✅ Email Sent Successfully!");
+    } catch (error) {
+      console.error(error);
+      alert("❌ Failed to send email.");
+    }
+  };
+
   const openGallery = async () => {
     setShowGalleryModal(true);
     const res = await axios.get(`${API_URL}/api/gallery`);
@@ -87,10 +99,11 @@ const AdminDashboard = () => {
     );
 
     try {
+      // Logic for adding member
       await axios.post(`${API_URL}/api/members`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      alert("Member Added!");
+      alert("Member Added & Welcome Email Sent!"); // Updated Alert
       fetchData();
       setNewMember({
         name: "",
@@ -481,7 +494,10 @@ const AdminDashboard = () => {
                   className="w-8 h-8 rounded-full object-cover"
                 />
               </div>
-              <button className="mt-2 w-full bg-red-600 text-white text-xs py-1 font-bold rounded hover:bg-red-700">
+              <button
+                onClick={() => handleSendReminder(m._id)}
+                className="mt-2 w-full bg-red-600 text-white text-xs py-1 font-bold rounded hover:bg-red-700"
+              >
                 SEND REMINDER
               </button>
             </div>
