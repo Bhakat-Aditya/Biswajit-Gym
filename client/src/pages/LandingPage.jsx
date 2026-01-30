@@ -524,7 +524,7 @@ const LandingPage = () => {
               >
                 <img
                   src={photo.photoUrl}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0"
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   alt="Gym"
                 />
               </div>
