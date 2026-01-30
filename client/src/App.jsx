@@ -1,19 +1,11 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import LandingPage from './pages/LandingPage';
-import AdminDashboard from './pages/AdminDashboard';
+import React from 'react'
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        {/* Public Route */}
-        <Route path="/" element={<LandingPage />} />
-        
-        {/* Private Admin Route */}
-        <Route path="/admin" element={<AdminDashboard />} />
-      </Routes>
-    </Router>
-  );
+    <div>
+      
+    </div>
+  )
 }
 
-export default App;
+export default App
