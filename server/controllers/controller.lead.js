@@ -1,4 +1,4 @@
-import Lead from "../models/model.lead.js";
+import Lead from "../model/model.lead.js";
 
 export const createLead = async (req, res) => {
     try {
@@ -12,7 +12,6 @@ export const createLead = async (req, res) => {
 
 export const getLeads = async (req, res) => {
     try {
-        // Fetch only 'New' leads or all depending on your need
         const leads = await Lead.find({ status: "New" }).sort({ createdAt: -1 });
         res.status(200).json({ success: true, data: leads });
     } catch (error) {

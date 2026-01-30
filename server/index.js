@@ -7,10 +7,10 @@ import { v2 as cloudinary } from 'cloudinary';
 // Routes
 import leadRoutes from './routes/route.lead.js';
 import memberRoutes from './routes/route.member.js';
+import cronRoutes from './routes/route.cron.js'; // Import Cron Route
 
 dotenv.config();
 
-// Cloudinary Config
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
@@ -22,7 +22,6 @@ const app = express();
 app.use(express.json());
 app.use(cors({ origin: process.env.CLIENT_URL || "*" }));
 
-// --- DB Connection ---
 const connectDB = async () => {
     try {
         await mongoose.connect(process.env.MONGO_URI);
@@ -35,10 +34,7 @@ const connectDB = async () => {
 // --- Routes ---
 app.use('/api/leads', leadRoutes);
 app.use('/api/members', memberRoutes);
-
-// --- Cron Job for Email (Simplified integration here) ---
-// Note: You can keep the Cron logic in a separate controller or utils file to keep index clean, 
-// but for Vercel Cron function, the existing logic in your original file is fine.
+app.use('/api/cron', cronRoutes); // Connect Cron Route
 
 app.get('/', (req, res) => res.send('Gym Server Running...'));
 

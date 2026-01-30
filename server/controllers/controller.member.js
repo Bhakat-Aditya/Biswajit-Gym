@@ -1,4 +1,4 @@
-import Member from "../models/model.member.js";
+import Member from "../model/model.member.js";
 import { v2 as cloudinary } from "cloudinary";
 
 // Helper to calculate expiry
