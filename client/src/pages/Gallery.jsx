@@ -1,21 +1,21 @@
-import React, { useEffect, useState, useRef } from "react";
-import axios from "axios";
+import React, { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { gsap } from "gsap";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+// --- LOAD LOCAL IMAGES AUTOMATICALLY ---
+// This requires you to put images in client/src/assets/gallery
+// The glob pattern loads .png, .jpg, .jpeg, .webp files
+const localImages = import.meta.glob(
+  "../assets/gallery/*.{png,jpg,jpeg,webp}",
+  { eager: true, import: "default" },
+);
+const photos = Object.values(localImages);
 
 const Gallery = () => {
   const navigate = useNavigate();
-  const [photos, setPhotos] = useState([]);
-  const [loading, setLoading] = useState(true);
   const containerRef = useRef(null);
 
-  useEffect(() => {
-    fetchGallery();
-  }, []);
-
-  // --- FIX: Animation triggers ONLY when 'photos' state changes ---
+  // Animation triggers when component mounts
   useEffect(() => {
     if (photos.length > 0) {
       const ctx = gsap.context(() => {
@@ -28,18 +28,7 @@ const Gallery = () => {
 
       return () => ctx.revert(); // Cleanup
     }
-  }, [photos]);
-
-  const fetchGallery = async () => {
-    try {
-      const res = await axios.get(`${API_URL}/api/gallery`);
-      setPhotos(res.data.data);
-      setLoading(false);
-    } catch (error) {
-      console.error(error);
-      setLoading(false);
-    }
-  };
+  }, []);
 
   return (
     <div className="min-h-screen bg-black text-white selection:bg-red-600">
@@ -67,37 +56,32 @@ const Gallery = () => {
           Snapshots from the Grind
         </p>
 
-        {loading ? (
-          <div className="text-center text-gray-500 animate-pulse">
-            Loading shots...
+        {photos.length === 0 ? (
+          <div className="text-center py-20 border border-zinc-800 rounded bg-zinc-900/50">
+            <p className="text-gray-500">
+              No photos found. Please add images to <br />
+              <code className="text-red-400">client/src/assets/gallery/</code>
+            </p>
           </div>
         ) : (
           // Using columns for Masonry layout
           <div className="columns-1 md:columns-3 gap-4 space-y-4">
-            {photos.map((photo) => (
+            {photos.map((url, index) => (
               <div
-                key={photo._id}
+                key={index}
                 className="gallery-item break-inside-avoid relative group overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900"
               >
                 <img
-                  src={photo.photoUrl}
-                  alt="Gym Moment"
+                  src={url}
+                  alt={`Gym Moment ${index + 1}`}
                   className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-110"
                 />
                 {/* Overlay - visible on hover */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
-                  <p className="text-xs text-gray-300 font-mono">
-                    {new Date(photo.createdAt).toLocaleDateString()}
-                  </p>
+                  <p className="text-xs text-gray-300 font-mono">#GRIND</p>
                 </div>
               </div>
             ))}
-          </div>
-        )}
-
-        {photos.length === 0 && !loading && (
-          <div className="text-center py-20 border border-zinc-800 rounded bg-zinc-900/50">
-            <p className="text-gray-500">No photos uploaded yet.</p>
           </div>
         )}
       </div>
