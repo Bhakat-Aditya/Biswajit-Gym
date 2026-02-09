@@ -8,6 +8,7 @@ import Hero from "../components/Hero";
 import Marquee from "../components/Marquee";
 import Features from "../components/Features";
 import Trainers from "../components/Trainers";
+import Testimonials from "../components/Testimonials"; // <--- NEW
 import Pricing from "../components/Pricing";
 import GalleryPreview from "../components/GalleryPreview";
 import FAQ from "../components/FAQ";
@@ -87,34 +88,22 @@ const LandingPage = () => {
       ref={mainRef}
       className="bg-black text-white min-h-screen overflow-x-hidden font-sans selection:bg-red-600 selection:text-white"
     >
-      {/* 1. NAVBAR - Passed set function to open modal */}
       <Navbar onOpenBmi={() => setIsBmiOpen(true)} />
 
-      {/* 2. HERO */}
       <Hero />
-
-      {/* 3. MARQUEE */}
       <Marquee />
-
-      {/* 4. FEATURES (Why Us) */}
       <Features />
 
-      {/* 5. TRAINERS (New Section) */}
       <Trainers />
 
-      {/* 6. PRICING */}
+      {/* NEW: Testimonials Section */}
+      <Testimonials />
+
       <Pricing />
-
-      {/* 7. GALLERY PREVIEW */}
       <GalleryPreview recentPhotos={recentPhotos} />
-
-      {/* 8. FAQ */}
       <FAQ />
-
-      {/* 9. FOOTER */}
       <Footer scrollToPlans={scrollToPlans} />
 
-      {/* 10. BMI MODAL (Hidden by default) */}
       <BMICalculator isOpen={isBmiOpen} onClose={() => setIsBmiOpen(false)} />
     </div>
   );
